@@ -33,15 +33,16 @@ struct jogador{
     int vida;
 };
 
+float inc_inimigo = 0.4;
 struct jogador jogador;
 struct inimigo vet_inimigos[NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS];
 
 void desenhaRetangulo(struct retangulo rect){
     glBegin(GL_POLYGON);
-            glVertex3f(rect.xpos, rect.ypos, 0);
-            glVertex3f(rect.xpos+rect.larg, rect.ypos, 0);
-            glVertex3f(rect.xpos+rect.larg, rect.ypos+rect.alt, 0);
-            glVertex3f(rect.xpos, rect.ypos+rect.alt, 0);
+        glVertex3f(rect.xpos, rect.ypos, 0);
+        glVertex3f(rect.xpos+rect.larg, rect.ypos, 0);
+        glVertex3f(rect.xpos+rect.larg, rect.ypos+rect.alt, 0);
+        glVertex3f(rect.xpos, rect.ypos+rect.alt, 0);
     glEnd();
 }
 
@@ -52,7 +53,25 @@ void desenhaJogador(){
 void desenhaInimigos(){
     int i;
     for(i=0;i<NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS;i++){
-        desenhaRetangulo(vet_inimigos[i].box);
+        if(vet_inimigos[i].vida>0){
+            desenhaRetangulo(vet_inimigos[i].box);
+        }
+    }
+}
+
+void movimentaInimigos(){
+    int i=0;
+
+    if((vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.xpos + vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.larg + inc_inimigo >= LARG_ORTHO) || (vet_inimigos[0].box.xpos + inc_inimigo <= 0)){//  || (vet_inimigos[0].box.xpos + incremento <= 0))
+        inc_inimigo *= -1;
+        for(i=0;i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS;i++){
+            vet_inimigos[i].box.ypos -= vet_inimigos[i].box.alt/2;
+        }
+    }
+    else{
+        for(i=0;i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS;i++){
+            vet_inimigos[i].box.xpos += inc_inimigo;
+        }
     }
 }
 
@@ -67,7 +86,8 @@ void desenhaMinhaCena()
     glutSwapBuffers();
 }
 
-void atualizaCena(int valorQualquer) {
+void atualizaCena(int valorQualquer) {  //FUNCAO DE UPDATE DO JOGO
+    movimentaInimigos();
     glutPostRedisplay();
     glutTimerFunc(33, atualizaCena, 0); // por quê 33? 1000/33 = 30fps, 16:60
 }
@@ -104,15 +124,13 @@ void inicializaInimigos(){
     }
 }
 
-void inicializaTudo()
-{
+void inicializaTudo(){
     inicializaJogador();
     inicializaInimigos();
     glClearColor(1, 1, 1, 1);
 }
 
-void redimensionada(int width, int height)
-{
+void redimensionada(int width, int height){
     glViewport(0, 0, width, height);
 
     glMatrixMode(GL_PROJECTION);
@@ -123,15 +141,25 @@ void redimensionada(int width, int height)
     glLoadIdentity();
 }
 
-void teclaPressionada(unsigned char key, int x, int y)
-{
+void teclaPressionada(unsigned char key, int x, int y){
+    float vel_jogador = 2;
     switch(key)
     {
     case 'd':
-        jogador.box.xpos+=2;
+        if(jogador.box.xpos+LARG_JOGADOR >= LARG_ORTHO){
+            jogador.box.xpos = LARG_ORTHO-jogador.box.larg;
+        }
+        else{
+            jogador.box.xpos += vel_jogador;
+        }
         break;
     case 'a':
-        jogador.box.xpos-=2;
+        if(jogador.box.xpos <= 0){
+            jogador.box.xpos = 0;
+        }
+        else{
+            jogador.box.xpos += -vel_jogador;
+        }
         break;
     case 27:
         exit(0);
@@ -142,8 +170,7 @@ void teclaPressionada(unsigned char key, int x, int y)
 }
 
 // função principal
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     glutInit(&argc, argv);
 
     glutInitContextVersion(1, 1);
