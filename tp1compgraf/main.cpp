@@ -1,6 +1,6 @@
-#include <GL/glew.h>      // glew.h deve vir antes
-#include <GL/freeglut.h>  // do freeglut.h
-#include <stdio.h>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <stdio.h>  //temporario e para teste
 
 #define LARG_JANELA 500
 #define ALT_JANELA 500
@@ -11,10 +11,15 @@
 #define NUM_LINHAS_INIMIGOS 4
 #define NUM_COLUNAS_INIMIGOS 7
 
-#define NUM_VIDAS_JOGADOR 3;
+#define NUM_VIDAS_JOGADOR 3
+
+#define NUM_TIROS 5
 
 #define LARG_JOGADOR 20
 #define ALT_JOGADOR 20
+
+#define ALT_TIRO 5
+#define LARG_TIRO 3
 
 struct retangulo{
     float xpos,
@@ -33,9 +38,27 @@ struct jogador{
     int vida;
 };
 
-float inc_inimigo = 0.4;
+struct tiro{
+    struct retangulo box;
+    float vel_y;
+    bool visivel;   //o tiro so sera desenhado e verificara colisoes se estiver true;
+};
+
+float vel_inimigo = 0.4;
+float vel_jogador = 2;
 struct jogador jogador;
+struct tiro vet_tiros[NUM_TIROS];
 struct inimigo vet_inimigos[NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS];
+
+bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
+    bool retorno = false;
+    if((rect1.xpos < rect2.xpos + rect2.larg) && (rect1.xpos + rect1.larg > rect2.xpos)){
+        if((rect1.ypos < rect2.ypos + rect2.alt) && (rect1.ypos + rect1.alt > rect2.ypos)){
+            retorno = true;
+        }
+    }
+    return retorno;
+}
 
 void desenhaRetangulo(struct retangulo rect){
     glBegin(GL_POLYGON);
@@ -59,18 +82,27 @@ void desenhaInimigos(){
     }
 }
 
+void desenhaTiros(){
+    int i;
+    for(i=0;i<NUM_TIROS;i++){
+        if(vet_tiros[i].visivel){
+            desenhaRetangulo(vet_tiros[i].box);
+        }
+    }
+}
+
 void movimentaInimigos(){
     int i=0;
 
-    if((vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.xpos + vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.larg + inc_inimigo >= LARG_ORTHO) || (vet_inimigos[0].box.xpos + inc_inimigo <= 0)){//  || (vet_inimigos[0].box.xpos + incremento <= 0))
-        inc_inimigo *= -1;
+    if((vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.xpos + vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.larg + vel_inimigo >= LARG_ORTHO) || (vet_inimigos[0].box.xpos + vel_inimigo <= 0)){
+        vel_inimigo *= -1;  //inverter direcao movimento
         for(i=0;i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS;i++){
-            vet_inimigos[i].box.ypos -= vet_inimigos[i].box.alt/2;
+            vet_inimigos[i].box.ypos -= vet_inimigos[i].box.alt/2;  //desce na vertical
         }
     }
     else{
         for(i=0;i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS;i++){
-            vet_inimigos[i].box.xpos += inc_inimigo;
+            vet_inimigos[i].box.xpos += vel_inimigo;
         }
     }
 }
@@ -82,6 +114,7 @@ void desenhaMinhaCena()
     glColor3f(0, 1, 0); //deve ser trocado por textura, por enquanto e para teste.
     desenhaJogador();
     desenhaInimigos();
+    desenhaTiros();
 
     glutSwapBuffers();
 }
@@ -124,9 +157,21 @@ void inicializaInimigos(){
     }
 }
 
+void inicializaTiros(){
+    int i;
+    for(i=0;i<NUM_TIROS;i++){
+        vet_tiros[i].box.larg = LARG_TIRO;
+        vet_tiros[i].box.alt = ALT_TIRO;
+        vet_tiros[i].box.xpos = 0;
+        vet_tiros[i].box.ypos = 0;
+        vet_tiros[i].visivel = false;
+    }
+}
+
 void inicializaTudo(){
     inicializaJogador();
     inicializaInimigos();
+    inicializaTiros();
     glClearColor(1, 1, 1, 1);
 }
 
@@ -142,7 +187,6 @@ void redimensionada(int width, int height){
 }
 
 void teclaPressionada(unsigned char key, int x, int y){
-    float vel_jogador = 2;
     switch(key)
     {
     case 'd':
