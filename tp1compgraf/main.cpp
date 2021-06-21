@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <stdio.h>  //temporario e para teste
+#include <math.h>
 
 #define LARG_JANELA 500
 #define ALT_JANELA 500
@@ -13,13 +14,15 @@
 
 #define NUM_VIDAS_JOGADOR 3
 
-#define NUM_TIROS 5
+#define NUM_TIROS_JOGADOR 30
 
 #define LARG_JOGADOR 20
 #define ALT_JOGADOR 20
 
 #define ALT_TIRO 5
 #define LARG_TIRO 3
+
+#define FRAMES_INTERVALO_TIROS 10
 
 struct retangulo{
     float xpos,
@@ -30,24 +33,33 @@ struct retangulo{
 
 struct inimigo{
     struct retangulo box;
-    int vida;
+    int vidas;
+    float vel_inimigo;
 };
 
 struct jogador{
     struct retangulo box;
-    int vida;
+    int vidas;
+    float vel_jogador;
 };
 
 struct tiro{
     struct retangulo box;
-    float vel_y;
+    float vel_tiro;
     bool visivel;   //o tiro so sera desenhado e verificara colisoes se estiver true;
 };
 
-float vel_inimigo = 0.4;
+int indice_vet_tiros; //sera inicializada junto com o vet_tiros
+int frames_desde_ultimo_tiro;
+
+bool ta_pausado;
+
 float vel_jogador = 2;
+float vel_inimigo = 0.4;
+float vel_tiro = 5;
+
 struct jogador jogador;
-struct tiro vet_tiros[NUM_TIROS];
+struct tiro vet_tiros_jogador[NUM_TIROS_JOGADOR];
 struct inimigo vet_inimigos[NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS];
 
 bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
@@ -76,7 +88,7 @@ void desenhaJogador(){
 void desenhaInimigos(){
     int i;
     for(i=0;i<NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS;i++){
-        if(vet_inimigos[i].vida>0){
+        if(vet_inimigos[i].vidas>0){
             desenhaRetangulo(vet_inimigos[i].box);
         }
     }
@@ -84,9 +96,9 @@ void desenhaInimigos(){
 
 void desenhaTiros(){
     int i;
-    for(i=0;i<NUM_TIROS;i++){
-        if(vet_tiros[i].visivel){
-            desenhaRetangulo(vet_tiros[i].box);
+    for(i=0;i<NUM_TIROS_JOGADOR;i++){
+        if(vet_tiros_jogador[i].visivel){
+            desenhaRetangulo(vet_tiros_jogador[i].box);
         }
     }
 }
@@ -107,6 +119,28 @@ void movimentaInimigos(){
     }
 }
 
+void movimentarTirosEVerificarColisao(){
+    int i,j;
+    for(i=0;i<NUM_TIROS_JOGADOR;i++){
+        if(vet_tiros_jogador[i].visivel){
+            vet_tiros_jogador[i].box.ypos += vet_tiros_jogador[i].vel_tiro;
+            for(j=0;j<NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS;j++){
+                if(vet_inimigos[j].vidas > 0){
+                    if(verificarColisao(vet_tiros_jogador[i].box,vet_inimigos[j].box)){
+                        vet_tiros_jogador[i].visivel = false;
+                        vet_inimigos[j].vidas -=1;
+                        break;
+                    }
+                }
+            }
+            //se chegou aqui entao nao colidiu com nenhum inimigo. verificar se saiu da tela.
+            if(vet_tiros_jogador[i].box.ypos >= LARG_ORTHO){
+                vet_tiros_jogador[i].visivel = false;
+            }
+        }
+    }
+}
+
 void desenhaMinhaCena()
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -120,7 +154,11 @@ void desenhaMinhaCena()
 }
 
 void atualizaCena(int valorQualquer) {  //FUNCAO DE UPDATE DO JOGO
-    movimentaInimigos();
+    if(!ta_pausado){ //se nao esta pausado
+        movimentaInimigos();
+        movimentarTirosEVerificarColisao();
+        frames_desde_ultimo_tiro++;
+    }
     glutPostRedisplay();
     glutTimerFunc(33, atualizaCena, 0); // por quê 33? 1000/33 = 30fps, 16:60
 }
@@ -130,7 +168,8 @@ void inicializaJogador(){
     jogador.box.alt=ALT_JOGADOR;
     jogador.box.xpos=(LARG_ORTHO-LARG_JOGADOR)/2;
     jogador.box.ypos=0;
-    jogador.vida = NUM_VIDAS_JOGADOR;
+    jogador.vidas = NUM_VIDAS_JOGADOR;
+    jogador.vel_jogador = vel_jogador;
 }
 
 void inicializaInimigos(){
@@ -152,23 +191,29 @@ void inicializaInimigos(){
             vet_inimigos[indice_vet].box.xpos = j*(largura_inimigo + espacamento_horizontal);
             vet_inimigos[indice_vet].box.ypos = (ALT_ORTHO-altura_inimigo) - i*(altura_inimigo+espacamento_vertical);
 
-            vet_inimigos[indice_vet].vida = 1;
+            vet_inimigos[indice_vet].vidas = 1;
+            vet_inimigos[indice_vet].vel_inimigo = vel_inimigo;
         }
     }
 }
 
 void inicializaTiros(){
+    //parte dos tiros do jogador
+    frames_desde_ultimo_tiro = FRAMES_INTERVALO_TIROS;
+    indice_vet_tiros = 0;
     int i;
-    for(i=0;i<NUM_TIROS;i++){
-        vet_tiros[i].box.larg = LARG_TIRO;
-        vet_tiros[i].box.alt = ALT_TIRO;
-        vet_tiros[i].box.xpos = 0;
-        vet_tiros[i].box.ypos = 0;
-        vet_tiros[i].visivel = false;
+    for(i=0;i<NUM_TIROS_JOGADOR;i++){
+        vet_tiros_jogador[i].box.larg = LARG_TIRO;
+        vet_tiros_jogador[i].box.alt = ALT_TIRO;
+        vet_tiros_jogador[i].box.xpos = 0;
+        vet_tiros_jogador[i].box.ypos = 0;
+        vet_tiros_jogador[i].visivel = false;
+        vet_tiros_jogador[i].vel_tiro = vel_tiro;
     }
 }
 
 void inicializaTudo(){
+    ta_pausado = false;
     inicializaJogador();
     inicializaInimigos();
     inicializaTiros();
@@ -189,21 +234,52 @@ void redimensionada(int width, int height){
 void teclaPressionada(unsigned char key, int x, int y){
     switch(key)
     {
-    case 'd':
-        if(jogador.box.xpos+LARG_JOGADOR >= LARG_ORTHO){
-            jogador.box.xpos = LARG_ORTHO-jogador.box.larg;
+    case 'p':
+        if(ta_pausado){
+            ta_pausado=false;
         }
         else{
-            jogador.box.xpos += vel_jogador;
+            ta_pausado=true;
+        }
+        break;
+    case 'd':
+        if(!ta_pausado){
+            if(jogador.box.xpos+LARG_JOGADOR >= LARG_ORTHO){
+                jogador.box.xpos = LARG_ORTHO-jogador.box.larg;
+            }
+            else{
+                jogador.box.xpos += vel_jogador;
+            }
         }
         break;
     case 'a':
-        if(jogador.box.xpos <= 0){
-            jogador.box.xpos = 0;
+        if(!ta_pausado){
+            if(jogador.box.xpos <= 0){
+                jogador.box.xpos = 0;
+            }
+            else{
+                jogador.box.xpos -= vel_jogador;
+            }
         }
-        else{
-            jogador.box.xpos += -vel_jogador;
+        break;
+    case ' ':
+        if(!ta_pausado){
+            if(frames_desde_ultimo_tiro>=FRAMES_INTERVALO_TIROS){
+                frames_desde_ultimo_tiro = 0;
+
+                vet_tiros_jogador[indice_vet_tiros].box.xpos = jogador.box.xpos + jogador.box.larg/2 - vet_tiros_jogador[indice_vet_tiros].box.larg/2; //comecar no meio do jogador
+                vet_tiros_jogador[indice_vet_tiros].box.ypos = jogador.box.ypos; //comeca em baixo do quadrado do jogador, dentro dele.
+                vet_tiros_jogador[indice_vet_tiros].visivel = true;
+
+                indice_vet_tiros++;
+                if(indice_vet_tiros == NUM_TIROS_JOGADOR){  //cuidado: se apertar muito rapido ele pode teleportar um tiro que ja esta na tela. adicionar limitacao ou aumentar muito o numero de tiros.
+                    indice_vet_tiros = 0;
+                }
+            }
         }
+        break;
+    case 'r':
+        inicializaTudo();
         break;
     case 27:
         exit(0);
