@@ -1,8 +1,10 @@
 # depslib dependency file v1.0
-1624286957 source:c:\users\caio\documents\tp1compgraf\main.cpp
+1624393640 source:c:\users\caio\documents\tp1compgraf\main.cpp
 	<GL/glew.h>
 	<GL/freeglut.h>
 	<stdio.h>
+	<stdlib.h>
+	<time.h>
 
 1501501581 c:\program files (x86)\codeblocks\mingw\include\gl\glew.h
 	<stddef.h>
@@ -256,6 +258,13 @@
 	<sys/types.h>
 
 1341006780 c:\program files (x86)\codeblocks\mingw\include\sys\types.h
+	<_mingw.h>
+	<stddef.h>
+
+1341006774 c:\program files (x86)\codeblocks\mingw\include\math.h
+	<_mingw.h>
+
+1341006776 c:\program files (x86)\codeblocks\mingw\include\time.h
 	<_mingw.h>
 	<stddef.h>
 
