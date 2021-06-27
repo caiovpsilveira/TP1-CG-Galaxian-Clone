@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include <SOIL/SOIL.h>
 #include <stdio.h>  //temporario e para teste
 #include <stdlib.h>
 #include <time.h>
@@ -71,6 +72,32 @@ struct tiro vet_tiros_jogador[NUM_TIROS_JOGADOR];
 struct tiro vet_tiros_inimigos[NUM_TIROS_INIMIGOS];
 struct inimigo vet_inimigos[NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS];
 
+struct Textura {
+    GLuint id;
+    char arquivo[50];
+};
+GLubyte texturaAtual = 0;
+GLubyte qtdeTexturas = 9;
+//definir texturar
+static struct Textura texturas[] = { {0, "galaxia1.png"}, {0, "galaxia2.png"}, {0, "galaxia3.png"},{0, "nave1.png"}, {0, "nave2.png"}, {0, "nave2.png"},{0, "tiro1.png"}, {0, "tiro2.png"}, {0, "tiro3.png"}};
+
+
+GLuint carregaTextura(const char* arquivo) {
+    GLuint idTextura = SOIL_load_OGL_texture(
+                           arquivo,
+                           SOIL_LOAD_AUTO,
+                           SOIL_CREATE_NEW_ID,
+                           SOIL_FLAG_INVERT_Y
+                       );
+
+    if (idTextura == 0) {
+        printf("Erro do SOIL: '%s'\n", SOIL_last_result());
+    }
+
+    return idTextura;
+}
+
+
 void inicializaJogador(){
     jogador.box.larg=LARG_JOGADOR;
     jogador.box.alt=ALT_JOGADOR;
@@ -137,7 +164,18 @@ void inicializaTudo(){
     inicializaJogador();
     inicializaInimigos();
     inicializaTiros();
-    glClearColor(1, 1, 1, 1);
+      // define qual é a cor do fundo
+    glClearColor(1, 1, 1, 1); // branco
+      // habilita mesclagem de cores, para termos suporte a texturas
+    // com transparência
+    glEnable(GL_BLEND );
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    int i;
+    for(i=0;i<qtdeTexturas;i++){
+    texturas[i].id=carregaTextura(texturas[i].arquivo);
+    }
+
+  //  idTexturaDaNave = carregaTextura("galaxy.png");
 }
 
 bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
@@ -150,24 +188,53 @@ bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
     return retorno;
 }
 
-void desenhaRetangulo(struct retangulo rect){
+void desenhaRetangulo(struct retangulo rect,GLuint id){
+// Habilita o uso de texturas
+    glEnable(GL_TEXTURE_2D);
+
+    // Começa a usar a textura que criamos
+    glBindTexture(GL_TEXTURE_2D, id);
     glBegin(GL_POLYGON);
+    glTexCoord2f(0, 0);
         glVertex3f(rect.xpos, rect.ypos, 0);
+    glTexCoord2f(1, 0);
         glVertex3f(rect.xpos+rect.larg, rect.ypos, 0);
+    glTexCoord2f(1, 1);
         glVertex3f(rect.xpos+rect.larg, rect.ypos+rect.alt, 0);
+    glTexCoord2f(0, 1);
         glVertex3f(rect.xpos, rect.ypos+rect.alt, 0);
     glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+void desenhaGalaxia(){
+// Habilita o uso de texturas
+    glEnable(GL_TEXTURE_2D);
+
+    // Começa a usar a textura que criamos
+    glBindTexture(GL_TEXTURE_2D, texturas[0].id);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0, 0);
+        glVertex3f(0, 0, 0);
+    glTexCoord2f(1, 0);
+        glVertex3f(LARG_ORTHO, 0, 0);
+    glTexCoord2f(1, 1);
+        glVertex3f(LARG_ORTHO, ALT_ORTHO, 0);
+    glTexCoord2f(0, 1);
+        glVertex3f(0, ALT_ORTHO, 0);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+
 }
 
 void desenhaJogador(){
-    desenhaRetangulo(jogador.box);
+    desenhaRetangulo(jogador.box,texturas[3].id);
 }
 
 void desenhaInimigos(){
     int i;
     for(i=0;i<NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS;i++){
         if(vet_inimigos[i].vidas>0){
-            desenhaRetangulo(vet_inimigos[i].box);
+            desenhaRetangulo(vet_inimigos[i].box,texturas[4].id);
         }
     }
 }
@@ -176,13 +243,13 @@ void desenhaTiros(){
     int i;
     for(i=0;i<NUM_TIROS_JOGADOR;i++){
         if(vet_tiros_jogador[i].visivel){
-            desenhaRetangulo(vet_tiros_jogador[i].box);
+            desenhaRetangulo(vet_tiros_jogador[i].box, texturas[8].id);
         }
     }
 
     for(i=0;i<NUM_TIROS_INIMIGOS;i++){
         if(vet_tiros_inimigos[i].visivel){
-            desenhaRetangulo(vet_tiros_inimigos[i].box);
+            desenhaRetangulo(vet_tiros_inimigos[i].box,texturas[6].id);
         }
     }
 }
@@ -282,7 +349,8 @@ void verificarFimJogo(){
 void desenhaMinhaCena(){
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glColor3f(0, 1, 0); //deve ser trocado por textura, por enquanto e para teste.
+    //glColor3f(1, 1, 1); //deve ser trocado por textura, por enquanto e para teste.
+    desenhaGalaxia();
     desenhaJogador();
     desenhaInimigos();
     desenhaTiros();

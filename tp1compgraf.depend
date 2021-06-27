@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1623971550 source:/home/usuario/Documentos/ComputacaoGrafica/tp1CompGraf/tp1compgraf/main.cpp
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<SOIL/SOIL.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+

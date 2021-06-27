@@ -35,11 +35,8 @@
 			<Add directory="C:/Program Files (x86)/CodeBlocks/MinGW/include" />
 		</Compiler>
 		<Linker>
-			<Add library="freeglut" />
-			<Add library="opengl32" />
-			<Add library="glu32" />
-			<Add library="winmm" />
-			<Add library="gdi32" />
+			<Add library="GLU" />
+			<Add library="glut" />
 			<Add directory="C:/Program Files (x86)/CodeBlocks/MinGW/lib" />
 		</Linker>
 		<Unit filename="main.cpp" />
