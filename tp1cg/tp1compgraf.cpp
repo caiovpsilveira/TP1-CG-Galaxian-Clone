@@ -50,18 +50,21 @@ struct inimigo{
     struct retangulo box;
     int vidas;
     float vel_inimigo;
+    GLuint textura;
 };
 
 struct jogador{
     struct retangulo box;
     int vidas;
     float vel_jogador;
+    GLuint textura;
 };
 
 struct tiro{
     struct retangulo box;
     float vel_tiro;
     bool visivel;   //o tiro so sera desenhado e verificara colisoes se estiver true;
+    GLuint textura;
 };
 
 int tela=0;
@@ -74,7 +77,7 @@ bool ta_pausado = false;    //false - nao ta pausado; true - pausado.
 float vel_jogador = 2;
 float vel_inimigo = 0.4;
 
-GLuint texturaInimigo;
+GLuint texturaInimigo[3];
 GLuint texturaTiroInimigo;
 GLuint texturaJogador;
 GLuint texturaTiroJogador;
@@ -112,7 +115,13 @@ GLuint carregaTextura(const char* caminho){
 }
 
 void inicializaTexturas(){
-    texturaInimigo = carregaTextura("inimigo.png");
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    texturaInimigo[0] = carregaTextura("inimigo1.png");
+    texturaInimigo[1] = carregaTextura("inimigo2.png");
+    texturaInimigo[2] = carregaTextura("inimigo3.png");
+
     texturaJogador = carregaTextura("jogador.png");
     texturaTiroInimigo = carregaTextura("tiro_inimigo.png");
     texturaTiroJogador = carregaTextura("tiro_jogador.png");
@@ -130,6 +139,7 @@ void inicializaJogador(){
     jogador.box.ypos=0;
     jogador.vidas = NUM_VIDAS_JOGADOR;
     jogador.vel_jogador = vel_jogador;
+    jogador.textura = texturaJogador;
 }
 
 void inicializaInimigos(){
@@ -155,6 +165,11 @@ void inicializaInimigos(){
             vet_inimigos[indice_vet].vel_inimigo = vel_inimigo;
         }
     }
+
+    //atribuir uma textura aleatoria para cada inimigo
+    for(i=0;i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS;i++){
+        vet_inimigos[i].textura = texturaInimigo[rand()%3]; //resto pelo numero de texturas inimigas
+    }
 }
 
 void inicializaTiros(){
@@ -171,6 +186,7 @@ void inicializaTiros(){
         vet_tiros_jogador[i].box.ypos = 0;
         vet_tiros_jogador[i].visivel = false;
         vet_tiros_jogador[i].vel_tiro = VEL_TIRO_JOG;
+        vet_tiros_jogador[i].textura = texturaTiroJogador;
     }
 
     //parte do tiro dos inimigos
@@ -181,6 +197,7 @@ void inicializaTiros(){
         vet_tiros_inimigos[i].box.ypos = 0;
         vet_tiros_inimigos[i].visivel = false;
         vet_tiros_inimigos[i].vel_tiro = VEL_TIRO_INIM;
+        vet_tiros_inimigos[i].textura = texturaTiroInimigo;
     }
 }
 
@@ -215,7 +232,7 @@ void desenhaRetangulo(struct retangulo rect){
 
 void desenhaJogador(){
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texturaJogador);
+    glBindTexture(GL_TEXTURE_2D, jogador.textura);
     desenhaRetangulo(jogador.box);
     glDisable(GL_TEXTURE_2D);
 }
@@ -223,9 +240,9 @@ void desenhaJogador(){
 void desenhaInimigos(){
     int i;
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texturaInimigo);
     for(i=0; i<NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS; i++){
         if(vet_inimigos[i].vidas>0){
+            glBindTexture(GL_TEXTURE_2D, vet_inimigos[i].textura);
             desenhaRetangulo(vet_inimigos[i].box);
         }
     }
@@ -236,16 +253,16 @@ void desenhaTiros(){
     int i;
     glEnable(GL_TEXTURE_2D);
 
-    glBindTexture(GL_TEXTURE_2D, texturaTiroJogador);
     for(i=0; i<NUM_TIROS_JOGADOR; i++){
         if(vet_tiros_jogador[i].visivel){
+            glBindTexture(GL_TEXTURE_2D, vet_tiros_jogador[i].textura);
             desenhaRetangulo(vet_tiros_jogador[i].box);
         }
     }
 
-    glBindTexture(GL_TEXTURE_2D, texturaTiroInimigo);
     for(i=0; i<NUM_TIROS_INIMIGOS; i++){
         if(vet_tiros_inimigos[i].visivel){
+            glBindTexture(GL_TEXTURE_2D, vet_tiros_inimigos[i].textura);
             desenhaRetangulo(vet_tiros_inimigos[i].box);
         }
     }
@@ -350,7 +367,7 @@ void verificarColisaoTiros(){
             if(verificarColisao(vet_tiros_inimigos[i].box,jogador.box)){
                 jogador.vidas--;
                 vet_tiros_inimigos[i].visivel = false;
-                //printf("%d\n",jogador.vidas);   //teste
+                //printf("%d\n",jogador.vidas);
                 //nao pode haver um break aqui, visto que deve verificar todos os tiros.
             }
         }
@@ -361,6 +378,8 @@ void desenhaMinhaCena(){
     glClear(GL_COLOR_BUFFER_BIT);
 
     //Lembrando do algoritmo do pintor: o que e desenhado por ultimo fica na frente
+    //apesar de por enquanto TELA_PERDEU, TELA_GANHOU e TELA_CREDITOS fazerem as
+    //mesmas coisas, deixar desse jeito facilita adicoes futuras
     switch(tela){
         case TELA_JOGO:
             desenhaFundo();
