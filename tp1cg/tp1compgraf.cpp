@@ -1,17 +1,22 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-#include <stdio.h>  //temporario e para teste
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <SOIL/SOIL.h>
 
-#define LARG_JANELA 500
-#define ALT_JANELA 500
+#define LARG_JANELA 800
+#define ALT_JANELA 800
 
-#define LARG_ORTHO 200
-#define ALT_ORTHO 200
+#define LARG_ORTHO 240
+#define ALT_ORTHO 240
 #define ZNEAR_ORTHO -1
 #define ZFAR_ORTHO 1
+
+#define TAM_BORDA_ESQ 20
+#define TAM_BORDA_DIR 20
+#define TAM_BORDA_INF 20
+#define TAM_BORDA_SUP 20
 
 #define NUM_LINHAS_INIMIGOS 4
 #define NUM_COLUNAS_INIMIGOS 7
@@ -32,12 +37,17 @@
 #define LARG_TIRO_INIM 2
 #define VEL_TIRO_INIM 2
 
+#define LARG_VIDA 10
+#define ALT_VIDA 10
+
 #define FRAMES_INTERVALO_TIROS 10
 
-#define TELA_JOGO 0
-#define TELA_PERDEU 1
-#define TELA_GANHOU 2
-#define TELA_CREDITOS 3
+#define TELA_MENU 0
+#define TELA_JOGO 1
+#define TELA_PERDEU 2
+#define TELA_GANHOU 3
+#define TELA_CREDITOS 4
+
 
 struct retangulo{
     float xpos,
@@ -81,9 +91,9 @@ GLuint texturaInimigo[3];
 GLuint texturaTiroInimigo;
 GLuint texturaJogador;
 GLuint texturaTiroJogador;
-GLuint texturaFundo[4];
-
-struct retangulo fundo = {0,0,LARG_ORTHO,ALT_ORTHO};
+GLuint texturaBordas;
+GLuint texturaVida;
+GLuint texturaFundo[5];
 
 struct jogador jogador;
 
@@ -126,17 +136,21 @@ void inicializaTexturas(){
     texturaTiroInimigo = carregaTextura("tiro_inimigo.png");
     texturaTiroJogador = carregaTextura("tiro_jogador.png");
 
-    texturaFundo[TELA_JOGO] = carregaTextura("fundo_jogo.png");
-    texturaFundo[TELA_PERDEU] = carregaTextura("fundo_perdeu.png");
-    texturaFundo[TELA_GANHOU] = carregaTextura("fundo_ganhou.png");
-    texturaFundo[TELA_CREDITOS] = carregaTextura("fundo_creditos.png");
+    texturaBordas = carregaTextura("bordas.png");
+    texturaVida = carregaTextura("vida.png");
+
+    texturaFundo[TELA_MENU] = carregaTextura("fundo_menu.png"); //0
+    texturaFundo[TELA_JOGO] = carregaTextura("fundo_jogo.png"); //1
+    texturaFundo[TELA_PERDEU] = carregaTextura("fundo_perdeu.png"); //2
+    texturaFundo[TELA_GANHOU] = carregaTextura("fundo_ganhou.png"); //3
+    texturaFundo[TELA_CREDITOS] = carregaTextura("fundo_creditos.png"); //4
 }
 
 void inicializaJogador(){
     jogador.box.larg=LARG_JOGADOR;
     jogador.box.alt=ALT_JOGADOR;
-    jogador.box.xpos=(LARG_ORTHO-LARG_JOGADOR)/2;
-    jogador.box.ypos=0;
+    jogador.box.xpos=TAM_BORDA_ESQ+(LARG_ORTHO-(TAM_BORDA_DIR+TAM_BORDA_ESQ)-jogador.box.larg)/2;
+    jogador.box.ypos=TAM_BORDA_INF;
     jogador.vidas = NUM_VIDAS_JOGADOR;
     jogador.vel_jogador = vel_jogador;
     jogador.textura = texturaJogador;
@@ -149,7 +163,7 @@ void inicializaInimigos(){
     int largura_inimigo = 10;
     int altura_inimigo = largura_inimigo; //ser um quadrado.
 
-    int espacamento_horizontal= (LARG_ORTHO - NUM_COLUNAS_INIMIGOS*largura_inimigo)/(NUM_COLUNAS_INIMIGOS);
+    int espacamento_horizontal= (LARG_ORTHO -(TAM_BORDA_ESQ+TAM_BORDA_DIR) - NUM_COLUNAS_INIMIGOS*largura_inimigo)/(NUM_COLUNAS_INIMIGOS);
 
     for(i=0; i<NUM_LINHAS_INIMIGOS; i++){
         for(j=0; j<NUM_COLUNAS_INIMIGOS; j++){
@@ -158,8 +172,8 @@ void inicializaInimigos(){
             vet_inimigos[indice_vet].box.larg = largura_inimigo;
             vet_inimigos[indice_vet].box.alt = altura_inimigo;
 
-            vet_inimigos[indice_vet].box.xpos = j*(largura_inimigo + espacamento_horizontal);
-            vet_inimigos[indice_vet].box.ypos = (ALT_ORTHO-altura_inimigo) - i*(altura_inimigo+espacamento_vertical);
+            vet_inimigos[indice_vet].box.xpos = j*(largura_inimigo + espacamento_horizontal)+TAM_BORDA_ESQ;
+            vet_inimigos[indice_vet].box.ypos = (ALT_ORTHO-TAM_BORDA_SUP-altura_inimigo) - i*(altura_inimigo+espacamento_vertical);
 
             vet_inimigos[indice_vet].vidas = 1;
             vet_inimigos[indice_vet].vel_inimigo = vel_inimigo;
@@ -202,8 +216,17 @@ void inicializaTiros(){
 }
 
 void inicializaTudo(){
-    tela=TELA_JOGO;
+    tela=TELA_MENU;
     inicializaTexturas();
+    ta_pausado = false;
+    inicializaJogador();
+    inicializaInimigos();
+    inicializaTiros();
+    glClearColor(1, 1, 1, 1);
+}
+
+void reiniciarJogo(){
+    tela=TELA_JOGO;
     ta_pausado = false;
     inicializaJogador();
     inicializaInimigos();
@@ -221,7 +244,7 @@ bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
     return retorno;
 }
 
-void desenhaRetangulo(struct retangulo rect){
+void desenhaStructRetangulo(struct retangulo rect){
     glBegin(GL_POLYGON);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(rect.xpos, rect.ypos, 0.0f);
         glTexCoord2f(1.0f, 0.0f); glVertex3f(rect.xpos+rect.larg, rect.ypos, 0.0f);
@@ -230,10 +253,19 @@ void desenhaRetangulo(struct retangulo rect){
     glEnd();
 }
 
+void desenhaRetanguloSemStruct(float xpos, float ypos, float larg, float alt){
+    glBegin(GL_POLYGON);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(xpos, ypos, 0.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(xpos+larg, ypos, 0.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(xpos+larg, ypos+alt, 0.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(xpos, ypos+alt, 0.0f);
+    glEnd();
+}
+
 void desenhaJogador(){
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, jogador.textura);
-    desenhaRetangulo(jogador.box);
+    desenhaStructRetangulo(jogador.box);
     glDisable(GL_TEXTURE_2D);
 }
 
@@ -243,7 +275,7 @@ void desenhaInimigos(){
     for(i=0; i<NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS; i++){
         if(vet_inimigos[i].vidas>0){
             glBindTexture(GL_TEXTURE_2D, vet_inimigos[i].textura);
-            desenhaRetangulo(vet_inimigos[i].box);
+            desenhaStructRetangulo(vet_inimigos[i].box);
         }
     }
     glDisable(GL_TEXTURE_2D);
@@ -256,14 +288,14 @@ void desenhaTiros(){
     for(i=0; i<NUM_TIROS_JOGADOR; i++){
         if(vet_tiros_jogador[i].visivel){
             glBindTexture(GL_TEXTURE_2D, vet_tiros_jogador[i].textura);
-            desenhaRetangulo(vet_tiros_jogador[i].box);
+            desenhaStructRetangulo(vet_tiros_jogador[i].box);
         }
     }
 
     for(i=0; i<NUM_TIROS_INIMIGOS; i++){
         if(vet_tiros_inimigos[i].visivel){
             glBindTexture(GL_TEXTURE_2D, vet_tiros_inimigos[i].textura);
-            desenhaRetangulo(vet_tiros_inimigos[i].box);
+            desenhaStructRetangulo(vet_tiros_inimigos[i].box);
         }
     }
     glDisable(GL_TEXTURE_2D);
@@ -272,15 +304,44 @@ void desenhaTiros(){
 void desenhaFundo(){
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texturaFundo[tela]);
-    desenhaRetangulo(fundo);
+    //A TELA_JOGO POSSUI HUD (ha bordas)
+    if(tela==TELA_JOGO){
+        desenhaRetanguloSemStruct(TAM_BORDA_ESQ,TAM_BORDA_INF, LARG_ORTHO-(TAM_BORDA_DIR+TAM_BORDA_ESQ), ALT_ORTHO-(TAM_BORDA_SUP+TAM_BORDA_INF));
+    }
+    else{
+        desenhaRetanguloSemStruct(0,0,LARG_ORTHO,ALT_ORTHO);
+    }
     glDisable(GL_TEXTURE_2D);
+}
+
+void desenhaBordas(){
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaBordas);
+    desenhaRetanguloSemStruct(0,0,LARG_ORTHO,ALT_ORTHO);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void desenhaVidas(){
+    int i;
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaVida);
+    for(i=0;i<jogador.vidas;i++){
+        desenhaRetanguloSemStruct(TAM_BORDA_ESQ+(2+LARG_VIDA)*i,2, LARG_VIDA, ALT_VIDA);
+    }
+    glDisable(GL_TEXTURE_2D);
+}
+
+void desenhaHUD(){
+    desenhaBordas();
+    desenhaVidas();
+    //escrevePontos();
 }
 
 void movimentaInimigos(){
     int i=0;
 
     //se a soma da posicao do ultimo inimigo da linha + incremento e maior do que a largura ou menor do que 0
-    if((vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.xpos + vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.larg + vel_inimigo >= LARG_ORTHO) || (vet_inimigos[0].box.xpos + vel_inimigo <= 0)){
+    if((vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.xpos + vet_inimigos[NUM_COLUNAS_INIMIGOS-1].box.larg + vel_inimigo >= LARG_ORTHO-TAM_BORDA_DIR) || (vet_inimigos[0].box.xpos + vel_inimigo <= TAM_BORDA_ESQ)){
         vel_inimigo *= -1;  //inverter direcao movimento
         for(i=0; i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS; i++){
             vet_inimigos[i].box.ypos -= vet_inimigos[i].box.alt/2;  //desce na vertical
@@ -323,18 +384,26 @@ void gerarTirosInimigos(){
 }
 
 void movimentarTiros(){
-    int i,j;
+    int i;
     //parte dos tiros do jogador
     for(i=0; i<NUM_TIROS_JOGADOR; i++){
         if(vet_tiros_jogador[i].visivel){
             vet_tiros_jogador[i].box.ypos += vet_tiros_jogador[i].vel_tiro;
+            //verificar se saiu da tela
+            if(vet_tiros_jogador[i].box.ypos >= ALT_ORTHO-TAM_BORDA_SUP-vet_tiros_jogador[i].box.alt){
+                vet_tiros_jogador[i].visivel = false;
+            }
         }
     }
 
     //parte dos tiros inimigos
     for(i=0; i<NUM_TIROS_INIMIGOS; i++){
         if(vet_tiros_inimigos[i].visivel){
-            vet_tiros_inimigos[i].box.ypos -= vet_tiros_inimigos[i].vel_tiro; //coemntar para poder testar colisoes com os tiros parados.
+            vet_tiros_inimigos[i].box.ypos -= vet_tiros_inimigos[i].vel_tiro;
+            //verificar se saiu da tela
+            if(vet_tiros_inimigos[i].box.ypos <= TAM_BORDA_INF){
+                vet_tiros_inimigos[i].visivel = false;
+            }
         }
     }
 }
@@ -374,38 +443,6 @@ void verificarColisaoTiros(){
     }
 }
 
-void desenhaMinhaCena(){
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    //Lembrando do algoritmo do pintor: o que e desenhado por ultimo fica na frente
-    //apesar de por enquanto TELA_PERDEU, TELA_GANHOU e TELA_CREDITOS fazerem as
-    //mesmas coisas, deixar desse jeito facilita adicoes futuras
-    switch(tela){
-        case TELA_JOGO:
-            desenhaFundo();
-            desenhaTiros();
-            desenhaInimigos();
-            desenhaJogador();
-            break;
-        case TELA_PERDEU:
-            desenhaFundo();
-            //escreveTexto(GLUT_BITMAP_TIMES_ROMAN_24,"Perdeu",100,100);
-            break;
-        case TELA_GANHOU:
-            desenhaFundo();
-            //escreveTexto(GLUT_BITMAP_TIMES_ROMAN_24,"Ganhou",100,100);
-            break;
-        case TELA_CREDITOS:
-            desenhaFundo();
-            break;
-        default:
-            //nao deveria entrar aqui
-            break;
-    }
-
-    glutSwapBuffers();
-}
-
 void verificarFimJogo(){
     int i, inim_vivos = 0;
     bool perdeu = false; //obs: nao perder é diferente de ganhar.
@@ -417,7 +454,7 @@ void verificarFimJogo(){
         for(i=0; i<NUM_COLUNAS_INIMIGOS*NUM_LINHAS_INIMIGOS; i++){
             if(vet_inimigos[i].vidas>0){  //o inimigo esta vivo.
                 inim_vivos++;
-                if(vet_inimigos[i].box.ypos<=0){
+                if(vet_inimigos[i].box.ypos<=TAM_BORDA_INF){
                     perdeu = true;
                 }
             }
@@ -430,11 +467,47 @@ void verificarFimJogo(){
     if(tela==TELA_JOGO){    //possibilitar alternar telas apos fim
         if(perdeu){ //perdeu
             tela=TELA_PERDEU;
+            ta_pausado = true;
         }
         else if(inim_vivos==0){ //ganhou
             tela=TELA_GANHOU;
+            ta_pausado = true;
         }
     }
+}
+
+void desenhaMinhaCena(){
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    //Lembrando do algoritmo do pintor: o que e desenhado por ultimo fica na frente
+    //apesar de por enquanto TELA_PERDEU, TELA_GANHOU e TELA_CREDITOS fazerem as
+    //mesmas coisas, deixar desse jeito facilita adicoes futuras
+    switch(tela){
+        case TELA_MENU:
+            desenhaFundo();
+            break;
+        case TELA_JOGO:
+            desenhaHUD();
+            desenhaFundo();
+            desenhaTiros();
+            desenhaInimigos();
+            desenhaJogador();
+            break;
+        case TELA_PERDEU:
+            desenhaFundo();
+            break;
+        case TELA_GANHOU:
+            desenhaFundo();
+            break;
+        case TELA_CREDITOS:
+            desenhaFundo();
+            break;
+        default:
+            //nunca deveria entrar aqui
+            break;
+    }
+
+    glutSwapBuffers();
 }
 
 void atualizaCena(int valorQualquer){   //GAME UPDATE
@@ -469,11 +542,13 @@ void teclaPressionada(unsigned char key, int x, int y){
     //A ORDEM DO SWITCH SERA A PRIORIDADE DE SIMULTANIEDADE
     switch(key){
     case 'p':
-        if(ta_pausado){
-            ta_pausado=false;
-        }
-        else{
-            ta_pausado=true;
+        if(tela==TELA_JOGO){
+            if(ta_pausado){
+                ta_pausado=false;
+            }
+            else{
+                ta_pausado=true;
+            }
         }
         break;
 
@@ -492,31 +567,33 @@ void teclaPressionada(unsigned char key, int x, int y){
                 }
             }
         }
+        if(tela == TELA_MENU){ //esse if deve vir abaixo dos outros para que quando comecar o jogo nao atirar "sozinho"
+            reiniciarJogo();
+            tela = TELA_JOGO;
+        }
         break;
 
     case 'r':
-        inicializaTudo();
-        break;
-
-    case 27:
-        exit(0);
-        break;
-
-    case 'd':
-        if(!ta_pausado){
-            if(jogador.box.xpos+LARG_JOGADOR >= LARG_ORTHO){
-                jogador.box.xpos = LARG_ORTHO-jogador.box.larg;
-            }
-            else{
-                jogador.box.xpos += vel_jogador;
-            }
+        if(tela==TELA_JOGO || tela==TELA_GANHOU || tela==TELA_PERDEU){
+            reiniciarJogo();
         }
+        break;
+
+    case 27://esc
+        if(tela==TELA_MENU){
+            exit(0);
+        }
+        else if(tela==TELA_JOGO || tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS){
+            ta_pausado=true; //necessario pro caso de TELA_JOGO
+            tela = TELA_MENU;
+        }
+
         break;
 
     case 'a':
         if(!ta_pausado){
-            if(jogador.box.xpos <= 0){
-                jogador.box.xpos = 0;
+            if(jogador.box.xpos <= TAM_BORDA_ESQ){
+                jogador.box.xpos = TAM_BORDA_ESQ;
             }
             else{
                 jogador.box.xpos -= vel_jogador;
@@ -524,9 +601,26 @@ void teclaPressionada(unsigned char key, int x, int y){
         }
         break;
 
+    case 'd':
+        if(!ta_pausado){
+            if(jogador.box.xpos+LARG_JOGADOR >= LARG_ORTHO-TAM_BORDA_DIR){
+                jogador.box.xpos = LARG_ORTHO-TAM_BORDA_DIR-jogador.box.larg;
+            }
+            else{
+                jogador.box.xpos += vel_jogador;
+            }
+        }
+        break;
+
     case 'c':
-        if(tela==TELA_GANHOU || tela==TELA_PERDEU){
+        if(tela==TELA_MENU){
             tela = TELA_CREDITOS;
+        }
+        break;
+
+    case 'm':
+        if(tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS){
+            tela=TELA_MENU;
         }
         break;
 
