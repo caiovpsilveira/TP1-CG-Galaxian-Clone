@@ -2,6 +2,7 @@
 #include <GL/freeglut.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>
 #include <time.h>
 #include <SOIL/SOIL.h>
 
@@ -33,8 +34,8 @@
 #define LARG_TIRO_JOG 3
 #define VEL_TIRO_JOG 5
 
-#define ALT_TIRO_INIM 3
-#define LARG_TIRO_INIM 2
+#define ALT_TIRO_INIM 5
+#define LARG_TIRO_INIM 3
 #define VEL_TIRO_INIM 2
 
 #define LARG_VIDA 10

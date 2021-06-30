@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1624823193 source:/home/usuario/Documentos/ComputacaoGrafica/tp1CompGraf/tp1compgraf/main.cpp
+1624842573 source:/home/usuario/Documentos/ComputacaoGrafica/tp1CompGraf/tp1compgraf/main.cpp
 	<GL/glew.h>
 	<GL/freeglut.h>
 	<SOIL/SOIL.h>
