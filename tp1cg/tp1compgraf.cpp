@@ -5,6 +5,9 @@
 #include <cstring>
 #include <time.h>
 #include <SOIL/SOIL.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
+
 
 #define LARG_JANELA 800
 #define ALT_JANELA 800
@@ -96,12 +99,47 @@ GLuint texturaBordas;
 GLuint texturaVida;
 GLuint texturaFundo[5];
 
+Mix_Music *efeito_musica = NULL; //- música de fundo
+Mix_Chunk *efeito_explosao = NULL;  //- efeito sonoro mixável.
+Mix_Chunk *efeito_tiro = NULL;
+Mix_Chunk *efeito_ganho = NULL;
+Mix_Chunk *efeito_perda = NULL;
 struct jogador jogador;
 
 struct tiro vet_tiros_jogador[NUM_TIROS_JOGADOR];
 struct tiro vet_tiros_inimigos[NUM_TIROS_INIMIGOS];
 struct inimigo vet_inimigos[NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS];
 
+
+void init(){
+ SDL_Init( SDL_INIT_AUDIO);
+ atexit(SDL_Quit);
+ //screen = SDL_SetVideoMode( LARG_ORTHO, ALT_ORTHO, 32, SDL_SWSURFACE);
+ Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 1024 ); //- inicializa SDL_Mixer
+ atexit(Mix_CloseAudio);
+}
+
+void carregar(){
+ efeito_musica = Mix_LoadMUS("SuperMarioBros.ogg");
+ efeito_explosao = Mix_LoadWAV("explode1.wav");
+ efeito_tiro = Mix_LoadWAV("fire.wav");
+ efeito_perda = Mix_LoadWAV("game_over.wav");
+ efeito_ganho = Mix_LoadWAV("victory.wav");
+}
+
+//- play/pause fundo musical -//
+void play_pause(){
+	if( Mix_PlayingMusic() == 0 ){ //- sem música
+		if( Mix_PlayMusic( efeito_musica, -1 ) == -1 ) //- play música
+			printf("ERRO> Mix_PlayMusic\n");
+	}else{
+		if( Mix_PausedMusic() == 1 ){ //- música pausada
+			Mix_ResumeMusic(); //- continua tacando
+		}else{
+			Mix_PauseMusic(); //- pausar música
+		}
+	}
+}
 void escreveTexto(void* fonte, char* texto, float x, float y) {
   glRasterPos2f(x, y);
 
@@ -218,6 +256,9 @@ void inicializaTiros(){
 
 void inicializaTudo(){
     tela=TELA_MENU;
+    init();
+    carregar();
+     Mix_PlayMusic( efeito_musica, -1 );//inicializar o som do jogo
     inicializaTexturas();
     ta_pausado = false;
     inicializaJogador();
@@ -233,6 +274,7 @@ void reiniciarJogo(){
     inicializaInimigos();
     inicializaTiros();
     glClearColor(1, 1, 1, 1);
+   // play_pause();
 }
 
 bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
@@ -240,6 +282,7 @@ bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
     if((rect1.xpos < rect2.xpos + rect2.larg) && (rect1.xpos + rect1.larg > rect2.xpos)){
         if((rect1.ypos < rect2.ypos + rect2.alt) && (rect1.ypos + rect1.alt > rect2.ypos)){
             retorno = true;
+            Mix_PlayChannel( -1, efeito_explosao, 0 );//efeito de explosão
         }
     }
     return retorno;
@@ -457,12 +500,18 @@ void verificarFimJogo(){
                 inim_vivos++;
                 if(vet_inimigos[i].box.ypos<=TAM_BORDA_INF){
                     perdeu = true;
+                     Mix_PlayChannel( -1, efeito_perda, 0 );//perdeu
+                   //  play_pause();
+                    
                 }
             }
         }
     }
     else{   //num vidas jogador = 0;
         perdeu = true;
+          Mix_PlayChannel( -1, efeito_perda, 0 );//perdeu
+        //  play_pause();
+        
     }
 
     if(tela==TELA_JOGO){    //possibilitar alternar telas apos fim
@@ -471,6 +520,7 @@ void verificarFimJogo(){
             ta_pausado = true;
         }
         else if(inim_vivos==0){ //ganhou
+             Mix_PlayChannel( -1, efeito_ganho, 0 );//efeito de ganho
             tela=TELA_GANHOU;
             ta_pausado = true;
         }
@@ -495,9 +545,11 @@ void desenhaMinhaCena(){
             desenhaJogador();
             break;
         case TELA_PERDEU:
+        // Mix_PlayChannel( -1, perdeu, 0 );//efeito perda
             desenhaFundo();
             break;
         case TELA_GANHOU:
+        // Mix_PlayChannel( -1, ganhou, 0 );//efeito ganho
             desenhaFundo();
             break;
         case TELA_CREDITOS:
@@ -554,7 +606,9 @@ void teclaPressionada(unsigned char key, int x, int y){
         break;
 
     case ' ':
+    
         if(!ta_pausado){
+             Mix_PlayChannel( -1, efeito_tiro, 0 );//efeito do tiro jogador
             if(frames_desde_ultimo_tiro>=FRAMES_INTERVALO_TIROS){ //evitar spam de tiros
                 frames_desde_ultimo_tiro = 0;
 
@@ -646,7 +700,6 @@ int main(int argc, char** argv)
     glutCreateWindow("Teste");
 
     inicializaTudo();
-
     glutReshapeFunc(redimensionada);
     glutDisplayFunc(desenhaMinhaCena);
     glutKeyboardFunc(teclaPressionada);
