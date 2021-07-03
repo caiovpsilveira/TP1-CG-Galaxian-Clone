@@ -624,6 +624,7 @@ void redimensionada(int width, int height){
 void teclaPressionada(unsigned char key, int x, int y){
     //A ORDEM DO SWITCH SERA A PRIORIDADE DE SIMULTANIEDADE
     switch(key){
+    case 'P':
     case 'p':
         if(tela==TELA_JOGO){
             if(ta_pausado){
@@ -645,7 +646,7 @@ void teclaPressionada(unsigned char key, int x, int y){
             tela = TELA_JOGO;
         }
         break;
-
+    case 'R':
     case 'r':
         if(tela==TELA_JOGO || tela==TELA_GANHOU || tela==TELA_PERDEU){
             reiniciarJogo();
@@ -663,7 +664,7 @@ void teclaPressionada(unsigned char key, int x, int y){
         }
 
         break;
-
+    case 'A':
     case 'a':
         if(!ta_pausado){
             if(jogador.box.xpos <= TAM_BORDA_ESQ){
@@ -674,7 +675,7 @@ void teclaPressionada(unsigned char key, int x, int y){
             }
         }
         break;
-
+    case 'D':
     case 'd':
         if(!ta_pausado){
             if(jogador.box.xpos+LARG_JOGADOR >= LARG_ORTHO-TAM_BORDA_DIR){
@@ -685,19 +686,19 @@ void teclaPressionada(unsigned char key, int x, int y){
             }
         }
         break;
-
+    case 'C':
     case 'c':
         if(tela==TELA_MENU){
             tela = TELA_CREDITOS;
         }
         break;
-
+    case 'M':
     case 'm':
         if(tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS || tela==TELA_CONTROLES){
             tela=TELA_MENU;
         }
         break;
-
+    case 'Z':
 	case 'z':
 		if(tela==TELA_MENU){
 			tela=TELA_CONTROLES;
@@ -722,7 +723,7 @@ int main(int argc, char** argv)
     glutInitWindowSize(LARG_JANELA, ALT_JANELA);
     glutInitWindowPosition(100, 100);
 
-    glutCreateWindow("Teste");
+    glutCreateWindow("INVASORES");
 
     inicializaTudo();
     glutReshapeFunc(redimensionada);
