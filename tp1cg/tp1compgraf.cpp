@@ -8,7 +8,6 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 
-
 #define LARG_JANELA 800
 #define ALT_JANELA 800
 
@@ -44,6 +43,9 @@
 #define LARG_VIDA 10
 #define ALT_VIDA 10
 
+#define LARG_PAUSE 20
+#define ALT_PAUSE 20
+
 #define FRAMES_INTERVALO_TIROS 10
 
 #define TELA_MENU 0
@@ -51,6 +53,7 @@
 #define TELA_PERDEU 2
 #define TELA_GANHOU 3
 #define TELA_CREDITOS 4
+#define TELA_CONTROLES 5
 
 
 struct retangulo{
@@ -97,13 +100,15 @@ GLuint texturaJogador;
 GLuint texturaTiroJogador;
 GLuint texturaBordas;
 GLuint texturaVida;
-GLuint texturaFundo[5];
+GLuint texturaPause;
+GLuint texturaFundo[6];
 
 Mix_Music *efeito_musica = NULL; //- música de fundo
 Mix_Chunk *efeito_explosao = NULL;  //- efeito sonoro mixável.
 Mix_Chunk *efeito_tiro = NULL;
-Mix_Chunk *efeito_ganho = NULL;
-Mix_Chunk *efeito_perda = NULL;
+Mix_Chunk *efeito_ganhou = NULL;
+Mix_Chunk *efeito_perdeu = NULL;
+
 struct jogador jogador;
 
 struct tiro vet_tiros_jogador[NUM_TIROS_JOGADOR];
@@ -111,35 +116,22 @@ struct tiro vet_tiros_inimigos[NUM_TIROS_INIMIGOS];
 struct inimigo vet_inimigos[NUM_LINHAS_INIMIGOS*NUM_COLUNAS_INIMIGOS];
 
 
-void init(){
- SDL_Init( SDL_INIT_AUDIO);
- atexit(SDL_Quit);
- //screen = SDL_SetVideoMode( LARG_ORTHO, ALT_ORTHO, 32, SDL_SWSURFACE);
- Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 1024 ); //- inicializa SDL_Mixer
- atexit(Mix_CloseAudio);
+void inicializaSDL(){
+     SDL_Init(SDL_INIT_AUDIO);
+     atexit(SDL_Quit);
+     //screen = SDL_SetVideoMode( LARG_ORTHO, ALT_ORTHO, 32, SDL_SWSURFACE);
+     Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 1024 ); //- inicializa SDL_Mixer
+     atexit(Mix_CloseAudio);
 }
 
-void carregar(){
- efeito_musica = Mix_LoadMUS("SuperMarioBros.ogg");
- efeito_explosao = Mix_LoadWAV("explode1.wav");
- efeito_tiro = Mix_LoadWAV("fire.wav");
- efeito_perda = Mix_LoadWAV("game_over.wav");
- efeito_ganho = Mix_LoadWAV("victory.wav");
+void carregarEfeitosSonoros(){
+     efeito_musica = Mix_LoadMUS("SuperMarioBros.ogg");
+     efeito_explosao = Mix_LoadWAV("explode1.wav");
+     efeito_tiro = Mix_LoadWAV("fire.wav");
+     efeito_perdeu = Mix_LoadWAV("game_over.wav");
+     efeito_ganhou = Mix_LoadWAV("victory.wav");
 }
 
-//- play/pause fundo musical -//
-void play_pause(){
-	if( Mix_PlayingMusic() == 0 ){ //- sem música
-		if( Mix_PlayMusic( efeito_musica, -1 ) == -1 ) //- play música
-			printf("ERRO> Mix_PlayMusic\n");
-	}else{
-		if( Mix_PausedMusic() == 1 ){ //- música pausada
-			Mix_ResumeMusic(); //- continua tacando
-		}else{
-			Mix_PauseMusic(); //- pausar música
-		}
-	}
-}
 void escreveTexto(void* fonte, char* texto, float x, float y) {
   glRasterPos2f(x, y);
 
@@ -177,12 +169,14 @@ void inicializaTexturas(){
 
     texturaBordas = carregaTextura("bordas.png");
     texturaVida = carregaTextura("vida.png");
+	texturaPause = carregaTextura("pause.png");
 
     texturaFundo[TELA_MENU] = carregaTextura("fundo_menu.png"); //0
     texturaFundo[TELA_JOGO] = carregaTextura("fundo_jogo.png"); //1
     texturaFundo[TELA_PERDEU] = carregaTextura("fundo_perdeu.png"); //2
     texturaFundo[TELA_GANHOU] = carregaTextura("fundo_ganhou.png"); //3
     texturaFundo[TELA_CREDITOS] = carregaTextura("fundo_creditos.png"); //4
+	texturaFundo[TELA_CONTROLES] = carregaTextura("fundo_controles.png"); //5
 }
 
 void inicializaJogador(){
@@ -256,25 +250,32 @@ void inicializaTiros(){
 
 void inicializaTudo(){
     tela=TELA_MENU;
-    init();
-    carregar();
-     Mix_PlayMusic( efeito_musica, -1 );//inicializar o som do jogo
+
+    inicializaSDL();
+    carregarEfeitosSonoros();
+    //Mix_PlayMusic(efeito_musica, -1 );//inicializar o som do jogo
+
     inicializaTexturas();
-    ta_pausado = false;
+    ta_pausado = true;
+
     inicializaJogador();
     inicializaInimigos();
     inicializaTiros();
+
     glClearColor(1, 1, 1, 1);
 }
 
 void reiniciarJogo(){
+    Mix_PlayMusic(efeito_musica, -1 );
+
     tela=TELA_JOGO;
     ta_pausado = false;
+
     inicializaJogador();
     inicializaInimigos();
     inicializaTiros();
+
     glClearColor(1, 1, 1, 1);
-   // play_pause();
 }
 
 bool verificarColisao(struct retangulo rect1, struct retangulo rect2){
@@ -370,7 +371,7 @@ void desenhaVidas(){
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texturaVida);
     for(i=0;i<jogador.vidas;i++){
-        desenhaRetanguloSemStruct(TAM_BORDA_ESQ+(2+LARG_VIDA)*i,2, LARG_VIDA, ALT_VIDA);
+        desenhaRetanguloSemStruct(TAM_BORDA_ESQ+(2+LARG_VIDA)*i,(TAM_BORDA_INF-ALT_VIDA)/2, LARG_VIDA, ALT_VIDA); //2+LARG_VIDA: espaco horizontal entre xpos dos retangulos
     }
     glDisable(GL_TEXTURE_2D);
 }
@@ -379,6 +380,16 @@ void desenhaHUD(){
     desenhaBordas();
     desenhaVidas();
     //escrevePontos();
+}
+
+void desenhaPause(){
+	//centralizar o pause dentro das bordas do jogo
+	float xpos = TAM_BORDA_ESQ+(LARG_ORTHO-(TAM_BORDA_DIR+TAM_BORDA_ESQ)-LARG_PAUSE)/2;
+	float ypos = TAM_BORDA_INF+(ALT_ORTHO-(TAM_BORDA_INF+TAM_BORDA_SUP)-ALT_PAUSE)/2;
+	glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaPause);
+	desenhaRetanguloSemStruct(xpos,ypos,LARG_PAUSE, ALT_PAUSE);
+	glDisable(GL_TEXTURE_2D);
 }
 
 void movimentaInimigos(){
@@ -487,6 +498,24 @@ void verificarColisaoTiros(){
     }
 }
 
+void jogadorAtira(){
+    if(!ta_pausado && tela==TELA_JOGO){
+        if(frames_desde_ultimo_tiro>=FRAMES_INTERVALO_TIROS){ //evitar spam de tiros
+            Mix_PlayChannel( -1, efeito_tiro, 0 );//efeito do tiro jogador
+            frames_desde_ultimo_tiro = 0;
+
+            vet_tiros_jogador[indice_vet_tiros_jog].box.xpos = jogador.box.xpos + jogador.box.larg/2 - vet_tiros_jogador[indice_vet_tiros_jog].box.larg/2; //comecar no meio do jogador
+            vet_tiros_jogador[indice_vet_tiros_jog].box.ypos = jogador.box.ypos; //comeca em baixo do quadrado do jogador, dentro dele.
+            vet_tiros_jogador[indice_vet_tiros_jog].visivel = true;
+
+            indice_vet_tiros_jog++;
+            if(indice_vet_tiros_jog == NUM_TIROS_JOGADOR){
+                indice_vet_tiros_jog = 0;
+            }
+        }
+    }
+}
+
 void verificarFimJogo(){
     int i, inim_vivos = 0;
     bool perdeu = false; //obs: nao perder é diferente de ganhar.
@@ -500,27 +529,24 @@ void verificarFimJogo(){
                 inim_vivos++;
                 if(vet_inimigos[i].box.ypos<=TAM_BORDA_INF){
                     perdeu = true;
-                     Mix_PlayChannel( -1, efeito_perda, 0 );//perdeu
-                   //  play_pause();
-                    
                 }
             }
         }
     }
     else{   //num vidas jogador = 0;
         perdeu = true;
-          Mix_PlayChannel( -1, efeito_perda, 0 );//perdeu
-        //  play_pause();
-        
     }
 
     if(tela==TELA_JOGO){    //possibilitar alternar telas apos fim
-        if(perdeu){ //perdeu
+        if(perdeu){
+            Mix_PauseMusic();
+            Mix_PlayChannel(-1, efeito_perdeu, 0 );
             tela=TELA_PERDEU;
             ta_pausado = true;
         }
         else if(inim_vivos==0){ //ganhou
-             Mix_PlayChannel( -1, efeito_ganho, 0 );//efeito de ganho
+            Mix_PauseMusic();
+            Mix_PlayChannel(-1, efeito_ganhou, 0 );
             tela=TELA_GANHOU;
             ta_pausado = true;
         }
@@ -543,18 +569,22 @@ void desenhaMinhaCena(){
             desenhaTiros();
             desenhaInimigos();
             desenhaJogador();
+            if(ta_pausado){
+                desenhaPause();
+            }
             break;
         case TELA_PERDEU:
-        // Mix_PlayChannel( -1, perdeu, 0 );//efeito perda
             desenhaFundo();
             break;
         case TELA_GANHOU:
-        // Mix_PlayChannel( -1, ganhou, 0 );//efeito ganho
             desenhaFundo();
             break;
         case TELA_CREDITOS:
             desenhaFundo();
             break;
+		case TELA_CONTROLES:
+			desenhaFundo();
+			break;
         default:
             //nunca deveria entrar aqui
             break;
@@ -565,7 +595,7 @@ void desenhaMinhaCena(){
 
 void atualizaCena(int valorQualquer){   //GAME UPDATE
 
-    if(!ta_pausado){  //se nao esta pausado
+    if(!ta_pausado && tela==TELA_JOGO){  //se nao esta pausado
         movimentaInimigos();
         verificarColisaoInimigosJogador();
 
@@ -598,31 +628,19 @@ void teclaPressionada(unsigned char key, int x, int y){
         if(tela==TELA_JOGO){
             if(ta_pausado){
                 ta_pausado=false;
+                Mix_ResumeMusic();
             }
             else{
                 ta_pausado=true;
+                Mix_PauseMusic();
             }
         }
         break;
 
     case ' ':
-    
-        if(!ta_pausado){
-             Mix_PlayChannel( -1, efeito_tiro, 0 );//efeito do tiro jogador
-            if(frames_desde_ultimo_tiro>=FRAMES_INTERVALO_TIROS){ //evitar spam de tiros
-                frames_desde_ultimo_tiro = 0;
 
-                vet_tiros_jogador[indice_vet_tiros_jog].box.xpos = jogador.box.xpos + jogador.box.larg/2 - vet_tiros_jogador[indice_vet_tiros_jog].box.larg/2; //comecar no meio do jogador
-                vet_tiros_jogador[indice_vet_tiros_jog].box.ypos = jogador.box.ypos; //comeca em baixo do quadrado do jogador, dentro dele.
-                vet_tiros_jogador[indice_vet_tiros_jog].visivel = true;
-
-                indice_vet_tiros_jog++;
-                if(indice_vet_tiros_jog == NUM_TIROS_JOGADOR){
-                    indice_vet_tiros_jog = 0;
-                }
-            }
-        }
-        if(tela == TELA_MENU){ //esse if deve vir abaixo dos outros para que quando comecar o jogo nao atirar "sozinho"
+        jogadorAtira();
+        if(tela == TELA_MENU){ //esse if deve vir abaixo de jogador Atira para que quando comecar o jogo nao atirar "sozinho"
             reiniciarJogo();
             tela = TELA_JOGO;
         }
@@ -638,8 +656,9 @@ void teclaPressionada(unsigned char key, int x, int y){
         if(tela==TELA_MENU){
             exit(0);
         }
-        else if(tela==TELA_JOGO || tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS){
+        else if(tela==TELA_JOGO || tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS || tela==TELA_CONTROLES){
             ta_pausado=true; //necessario pro caso de TELA_JOGO
+            Mix_PauseMusic();
             tela = TELA_MENU;
         }
 
@@ -674,10 +693,16 @@ void teclaPressionada(unsigned char key, int x, int y){
         break;
 
     case 'm':
-        if(tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS){
+        if(tela==TELA_GANHOU || tela==TELA_PERDEU || tela==TELA_CREDITOS || tela==TELA_CONTROLES){
             tela=TELA_MENU;
         }
         break;
+
+	case 'z':
+		if(tela==TELA_MENU){
+			tela=TELA_CONTROLES;
+		}
+		break;
 
     default:
         break;
