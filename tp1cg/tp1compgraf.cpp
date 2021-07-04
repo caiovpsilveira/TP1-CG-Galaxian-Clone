@@ -125,11 +125,11 @@ void inicializaSDL(){
 }
 
 void carregarEfeitosSonoros(){
-     efeito_musica = Mix_LoadMUS("SuperMarioBros.ogg");
-     efeito_explosao = Mix_LoadWAV("explode1.wav");
-     efeito_tiro = Mix_LoadWAV("fire.wav");
-     efeito_perdeu = Mix_LoadWAV("game_over.wav");
-     efeito_ganhou = Mix_LoadWAV("victory.wav");
+     efeito_musica = Mix_LoadMUS("audios/SuperMarioBros.ogg");
+     efeito_explosao = Mix_LoadWAV("audios/explode1.wav");
+     efeito_tiro = Mix_LoadWAV("audios/fire.wav");
+     efeito_perdeu = Mix_LoadWAV("audios/game_over.wav");
+     efeito_ganhou = Mix_LoadWAV("audios/victory.wav");
 }
 
 void escreveTexto(void* fonte, char* texto, float x, float y) {
@@ -159,24 +159,24 @@ void inicializaTexturas(){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    texturaInimigo[0] = carregaTextura("inimigo1.png");
-    texturaInimigo[1] = carregaTextura("inimigo2.png");
-    texturaInimigo[2] = carregaTextura("inimigo3.png");
+    texturaInimigo[0] = carregaTextura("texturas/inimigo1.png");
+    texturaInimigo[1] = carregaTextura("texturas/inimigo2.png");
+    texturaInimigo[2] = carregaTextura("texturas/inimigo3.png");
 
-    texturaJogador = carregaTextura("jogador.png");
-    texturaTiroInimigo = carregaTextura("tiro_inimigo.png");
-    texturaTiroJogador = carregaTextura("tiro_jogador.png");
+    texturaJogador = carregaTextura("texturas/jogador.png");
+    texturaTiroInimigo = carregaTextura("texturas/tiro_inimigo.png");
+    texturaTiroJogador = carregaTextura("texturas/tiro_jogador.png");
 
-    texturaBordas = carregaTextura("bordas.png");
-    texturaVida = carregaTextura("vida.png");
-	texturaPause = carregaTextura("pause.png");
+    texturaBordas = carregaTextura("texturas/bordas.png");
+    texturaVida = carregaTextura("texturas/vida.png");
+	texturaPause = carregaTextura("texturas/pause.png");
 
-    texturaFundo[TELA_MENU] = carregaTextura("fundo_menu.png"); //0
-    texturaFundo[TELA_JOGO] = carregaTextura("fundo_jogo.png"); //1
-    texturaFundo[TELA_PERDEU] = carregaTextura("fundo_perdeu.png"); //2
-    texturaFundo[TELA_GANHOU] = carregaTextura("fundo_ganhou.png"); //3
-    texturaFundo[TELA_CREDITOS] = carregaTextura("fundo_creditos.png"); //4
-	texturaFundo[TELA_CONTROLES] = carregaTextura("fundo_controles.png"); //5
+    texturaFundo[TELA_MENU] = carregaTextura("texturas/fundo_menu.png"); //0
+    texturaFundo[TELA_JOGO] = carregaTextura("texturas/fundo_jogo.png"); //1
+    texturaFundo[TELA_PERDEU] = carregaTextura("texturas/fundo_perdeu.png"); //2
+    texturaFundo[TELA_GANHOU] = carregaTextura("texturas/fundo_ganhou.png"); //3
+    texturaFundo[TELA_CREDITOS] = carregaTextura("texturas/fundo_creditos.png"); //4
+	texturaFundo[TELA_CONTROLES] = carregaTextura("texturas/fundo_controles.png"); //5
 }
 
 void inicializaJogador(){
