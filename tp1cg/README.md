@@ -12,17 +12,20 @@ Esse trabalho foi desenvolvido no ãmbito da disciplina Computação Gráfica 20
 Instruções para a compilação e execução
 =======================================
 1. Para compilar  jogo, deve  entrar no terminal. Dentro do diretorio,dá o comando *make*.
->~/../tp1cg$ `make`
-2. Depois da compilação, roda o arquivo executávell que foi criado fazendo 
->~/../tp1cg$ `./tp1compgraf`
+>**~/../tp1cg$** `make`
+2. Depois da compilação, roda o arquivo executável que foi criado fazendo 
+>**~/../tp1cg$** `./tp1compgraf`
+
+*Atenção: No meu menu do jogo, encontra-se as intruções para jogar.*
+
 
 
 Lista de itens adicionais implementados no jogo
 ===============================================
 
-- item 1
-- item 2
-- item 3
+- Sons (até 12%): efeitos sonoros e música de fundo no seu jogo
+- Telas (até 12%): splash screen, menu inicial, instruções, créditos, opções, game over, etc
+- Vidas (5%): em vez de morrer na primeira colisão, o jogador pode ter vidas.
 
 
 
@@ -35,7 +38,7 @@ Screenshot da Cena
 Desmostração em Video
 =====================
 
-[![Jogo invasores](/fundo_creditos.png "Desmostração em video do jogo")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
+[![Jogo invasores](/texturas/youtube_logo.png "Desmostração em video do jogo")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
 
 # Referência
 - [Super Mario Bros Theme][1]
