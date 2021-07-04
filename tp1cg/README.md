@@ -31,14 +31,15 @@ Lista de itens adicionais implementados no jogo
 
 Screenshot da Cena
 ==================
-![Cena de jogo](/screenshots/cena1.png "Cena 1")
-![Cena de jogo](/screenshots/cena2.png "Cena 2")
-![Cena de jogo](/screenshots/cena3.png "Cena 3")
+![Cena de jogo](./screenshots/cena1.png "Cena 1")
+![Cena de jogo](./screenshots/cena2.png "Cena 2")
+![Cena de jogo](./screenshots/cena3.png "Cena 3")
 
 Desmostração em Video
 =====================
 
-[![Youtube](/texturas/youtube_logo.png "Desmostração em video do jogo")](link do video)
+  [![Video Youtube](./texturas/youtube_logo.png "Desmostração em video do jogo")][6]
+  
 
 # Referência
 - [Super Mario Bros Theme][1]
@@ -52,3 +53,4 @@ Desmostração em Video
 [3]: <https://www.gratispng.com/png-ed4n8l/> (Naves)
 [4]: <https://www.freepik.com/free-photo/starry-night-sky_7061153.htm#page=1&query=galaxy&position=11> (Galaxia)
 [5]: <https://www.freepik.com/free-vector/space-doodle_10837997.htm#page=1&query=galaxy&position=24> (HUD)
+[6]: <link-do-video>
