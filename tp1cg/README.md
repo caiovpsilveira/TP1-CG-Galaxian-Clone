@@ -38,8 +38,9 @@ Screenshot da Cena
 Desmostração em Video
 =====================
 
-  [![Video Youtube](./texturas/youtube_logo.png "Desmostração em video do jogo")][6]
+![Video Youtube](./texturas/youtube_logo.png "Desmostração em video do jogo")
   
+[Clique aqui para assistir o vídeo][6]
 
 # Referência
 - [Super Mario Bros Theme][1]
