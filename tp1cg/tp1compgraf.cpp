@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(LARG_JANELA, ALT_JANELA);
-    glutInitWindowPosition(100, 100);
+    glutInitWindowPosition(600, 100);
 
     glutCreateWindow("INVASORES");
 

@@ -53,4 +53,4 @@ Desmostração em Video
 [3]: <https://www.gratispng.com/png-ed4n8l/> (Naves)
 [4]: <https://www.freepik.com/free-photo/starry-night-sky_7061153.htm#page=1&query=galaxy&position=11> (Galaxia)
 [5]: <https://www.freepik.com/free-vector/space-doodle_10837997.htm#page=1&query=galaxy&position=24> (HUD)
-[6]: <link-do-video>
+[6]: <https://youtu.be/1NMAO0lUhCI> (Demostração)
