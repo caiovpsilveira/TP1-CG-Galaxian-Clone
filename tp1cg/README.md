@@ -38,7 +38,10 @@ Screenshot da Cena
 Desmostração em Video
 =====================
 
-  [![Video Youtube](./texturas/youtube_logo.png "Desmostração em video do jogo")][6]
+  ![Video Youtube](./texturas/youtube_logo.png "Desmostração em video do jogo")
+  
+  [Clique aquio para ver o video][6]
+
   
 
 # Referência
