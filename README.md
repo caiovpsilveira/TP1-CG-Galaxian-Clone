@@ -29,9 +29,9 @@ Instalação SDL e SDL_mixer:
 Instruções para a compilação e execução
 =======================================
 1. Para compilar  jogo, deve  entrar no terminal. Dentro do diretorio,dá o comando *make*.
->**~/../tp1cg$** `make`
+>**~/../tp1CompGraf$** `make`
 2. Depois da compilação, roda o arquivo executável que foi criado fazendo 
->**~/../tp1cg$** `./tp1compgraf`
+>**~/../tp1CompGraf$** `./tp1compgraf`
 
 *Atenção: No meu menu do jogo, encontra-se as intruções para jogar.*
 
