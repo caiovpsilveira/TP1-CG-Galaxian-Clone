@@ -3,27 +3,28 @@ TP1 COMPUTAÇÃO GRÁFICA
 
 
 
+
 Esse trabalho foi desenvolvido no ãmbito da disciplina Computação Gráfica 2021.1 pelos integrantes:
 - Abdul Kevin Alexis
 - Caio Vínicius
-  
 
 BIBLIOTECAS NECESSARIAS
 =======================================
-glew, freeglut, SOIL, SDL, SDL_mixer.
+glew, freeglut, SOIL, SDL, SDL_mixer
+-------------------------------------
 
-Instalação freeglut:
-sudo apt-get install freeglut3-dev
 
-Instalação GLEW:
-sudo apt-get install libglew-dev
+- Instalação freeglut:
+>`sudo apt-get install freeglut3 freeglut3-dev`
 
-Instalação SOIL:
-sudo apt-get install libsoil-dev
+- Instalação GLEW:
+>`sudo apt-get install libglew-dev`
+
+- Instalação SOIL:
+>`sudo apt-get install libsoil-dev`
 
 Instalação SDL e SDL_mixer:
-sudo apt-get install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
-=======================================
+>`sudo apt-get install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev`
 
 Instruções para a compilação e execução
 =======================================
