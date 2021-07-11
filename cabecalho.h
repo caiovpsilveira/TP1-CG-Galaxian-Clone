@@ -1,8 +1,8 @@
-#include "biblioteca/GL/glew.h"
-#include "biblioteca/GL/freeglut.h"
-#include "biblioteca/SOIL/SOIL.h"
-#include "biblioteca/SDL/SDL.h"
-#include "biblioteca/SDL/SDL_mixer.h"
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <SOIL/SOIL.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 
 #define LARG_JANELA 800
 #define ALT_JANELA 800
